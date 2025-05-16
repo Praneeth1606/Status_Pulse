@@ -70,7 +70,16 @@ export default async function Home() {
         </div>
 
         <div className="mt-24 text-center space-y-6">
-          {userId && !orgId ? (
+          {!userId ? (
+            <div className="inline-flex rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <SignInButton mode="modal">
+                <Button size="lg" className="px-10 py-6 text-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-all duration-300">
+                  Sign In
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </SignInButton>
+            </div>
+          ) : userId && !orgId ? (
             <>
               <div className="inline-flex rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
                 <Link href="/create-organization">
@@ -92,12 +101,12 @@ export default async function Home() {
             </>
           ) : (
             <div className="inline-flex rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <SignInButton mode="modal">
+              <Link href="/organization/dashboard">
                 <Button size="lg" className="px-10 py-6 text-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-all duration-300">
-                  Sign In
+                  Go to Dashboard
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
-              </SignInButton>
+              </Link>
             </div>
           )}
         </div>
