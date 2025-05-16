@@ -1,0 +1,137 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  orgId        String?
+  clerkId      String        @unique
+  email        String
+  firstName    String?
+  lastName     String?
+  organization Organization? @relation(fields: [orgId], references: [id])
+}
+
+enum ServiceStatus {
+  operational
+  degraded
+  partialOutage
+  majorOutage
+  maintenance
+}
+
+enum IncidentStatus {
+  investigating
+  identified
+  monitoring
+  resolved
+}
+
+enum IncidentImpact {
+  none
+  minor
+  major
+  critical
+}
+
+enum MaintenanceStatus {
+  scheduled
+  in_progress
+  completed
+}
+
+model Organization {
+  id           String         @id @default(cuid())
+  name         String
+  slug         String         @unique
+  users        User[]
+  services     Service[]
+  incidents    Incident[]
+  maintenances Maintenance[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  ServiceGroup ServiceGroup[]
+}
+
+model Service {
+  id           String        @id @default(cuid())
+  name         String
+  description  String?
+  status       ServiceStatus
+  updatedAt    DateTime      @updatedAt
+  groupId      String?
+  group        ServiceGroup? @relation(fields: [groupId], references: [id])
+  incidents    Incident[]
+  maintenances Maintenance[]
+  orgId        String
+  organization Organization  @relation(fields: [orgId], references: [id])
+}
+
+model ServiceGroup {
+  id           String       @id @default(cuid())
+  name         String
+  description  String?
+  services     Service[]
+  orgId        String
+  organization Organization @relation(fields: [orgId], references: [id])
+}
+
+model Incident {
+  id               String           @id @default(cuid())
+  title            String
+  description      String
+  status           IncidentStatus
+  impact           IncidentImpact
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  resolvedAt       DateTime?
+  affectedServices Service[]
+  updates          IncidentUpdate[]
+  orgId            String
+  organization     Organization     @relation(fields: [orgId], references: [id])
+}
+
+model IncidentUpdate {
+  id         String         @id @default(cuid())
+  incidentId String
+  incident   Incident       @relation(fields: [incidentId], references: [id])
+  message    String
+  status     IncidentStatus
+  createdAt  DateTime       @default(now())
+  createdBy  String
+}
+
+model Maintenance {
+  id               String              @id @default(cuid())
+  title            String
+  description      String
+  status           MaintenanceStatus
+  startTime        DateTime
+  endTime          DateTime
+  createdAt        DateTime            @default(now())
+  affectedServices Service[]
+  updates          MaintenanceUpdate[]
+  orgId            String
+  organization     Organization        @relation(fields: [orgId], references: [id])
+}
+
+model MaintenanceUpdate {
+  id            String            @id @default(cuid())
+  maintenanceId String
+  maintenance   Maintenance       @relation(fields: [maintenanceId], references: [id])
+  message       String
+  status        MaintenanceStatus
+  createdAt     DateTime          @default(now())
+  createdBy     String
+}
