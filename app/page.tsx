@@ -3,15 +3,9 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowRight, Activity, Shield, Bell } from "lucide-react";
 import { SignInButton } from "@clerk/nextjs";
-import { getUser } from "./actions";
 
 export default async function Home() {
   const { userId, orgId } = await auth();
-
-  const user = await getUser();
-  if (!user) {
-    return <div>User not found</div>;
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50">

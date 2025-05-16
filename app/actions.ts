@@ -8,34 +8,9 @@ import {
   MaintenanceStatus,
 } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { currentUser, auth } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { validateOrganizationAccess } from "@/lib/auth";
 
-export async function getUser() {
-  const { orgId } = await auth();
-  const user = await currentUser();
-  if (!user) {
-    return { error: "User not found" };
-  }
-
-  const existing = await prisma.user.findUnique({
-    where: { clerkId: user.id },
-  });
-
-  if (!existing) {
-    return await prisma.user.create({
-      data: {
-        clerkId: user.id,
-        email: user.emailAddresses[0].emailAddress,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        orgId: orgId,
-      },
-    });
-  }
-
-  return existing;
-}
 
 async function getCurrentOrganization() {
   const { orgId } = await auth();

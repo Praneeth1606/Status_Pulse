@@ -1,6 +1,6 @@
 import { Webhook } from "svix";
 import { headers } from "next/headers";
-import { WebhookEvent } from "@clerk/nextjs/server";
+import { currentUser, WebhookEvent } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
@@ -45,6 +45,40 @@ export async function POST(req: Request) {
   const eventType = evt.type;
 
   try {
+    if (eventType === "user.created") {
+      const { id, email_addresses, first_name, last_name, } = evt.data;
+
+      // Check if user already exists
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          clerkId: id,
+        },
+      });
+
+      if (existingUser) {
+        // Update existing user's organization
+        await prisma.user.update({
+          where: { id: existingUser.id },
+          data: {
+            email: email_addresses[0].email_address,
+            firstName: first_name,
+            lastName: last_name,
+          },
+        });
+      } else {
+        // Create new user
+        await prisma.user.create({
+          data: {
+            clerkId: id,
+            email: email_addresses[0].email_address,
+            firstName: first_name,
+            lastName: last_name, 
+            orgId: null,
+          },
+        });
+      }
+    }
+
     if (eventType === "organizationInvitation.created") {
       const { id, organization_id, email_address } = evt.data;
 
@@ -77,6 +111,12 @@ export async function POST(req: Request) {
       }
     }
     if (eventType === "organization.created") {
+      const user = await currentUser();
+      if (!user) {
+        return new Response("User not found", {
+          status: 400,
+        });
+      }
       const { id, name, slug } = evt.data;
 
       await prisma.organization.create({
@@ -84,6 +124,12 @@ export async function POST(req: Request) {
           id,
           name,
           slug,
+        },
+      });
+      await prisma.user.update({
+        where: { clerkId: user.id },
+        data: {
+          orgId: id,
         },
       });
     }
