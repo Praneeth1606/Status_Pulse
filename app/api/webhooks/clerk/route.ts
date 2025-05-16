@@ -162,6 +162,22 @@ export async function POST(req: Request) {
     if (eventType === "organizationMembership.created") {
       const { organization, public_user_data } = evt.data;
 
+      // First verify the organization exists
+      const existingOrg = await prisma.organization.findUnique({
+        where: { id: organization.id },
+      });
+
+      if (!existingOrg) {
+        // Create the organization if it doesn't exist
+        await prisma.organization.create({
+          data: {
+            id: organization.id,
+            name: organization.name,
+            slug: organization.slug,
+          },
+        });
+      }
+
       // Check if user already exists
       const existingUser = await prisma.user.findFirst({
         where: {
