@@ -9,7 +9,7 @@ export default async function ServicesPage() {
   }
 
   const { services } = await getServices(orgId);
-  const serviceGroups = await getServiceGroups();
+  const serviceGroups = await getServiceGroups(orgId);
 
   return (
     <div className="space-y-6">
