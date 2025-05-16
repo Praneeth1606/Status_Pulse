@@ -1,5 +1,5 @@
 import React from "react";
-import { Incident, Service } from "@prisma/client";
+import { Incident, Service, ServiceStatus } from "@prisma/client";
 import { IncidentStatus, IncidentImpact } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { addIncident, updateIncident } from "@/app/actions";
@@ -31,6 +31,14 @@ const impactOptions = [
   { value: IncidentImpact.critical, label: "Critical" },
 ] as const;
 
+const serviceStatusOptions = [
+  { value: ServiceStatus.operational, label: "Operational" },
+  { value: ServiceStatus.degraded, label: "Degraded" },
+  { value: ServiceStatus.partialOutage, label: "Partial Outage" },
+  { value: ServiceStatus.majorOutage, label: "Major Outage" },
+  { value: ServiceStatus.maintenance, label: "Maintenance" },
+];
+
 const IncidentForm: React.FC<IncidentFormProps> = ({
   editMode = false,
   initialData,
@@ -53,6 +61,7 @@ const IncidentForm: React.FC<IncidentFormProps> = ({
   const [affectedServices, setAffectedServices] = React.useState<string[]>(
     initialData?.affectedServices?.map((s) => s.id) || []
   );
+  const [serviceStatuses, setServiceStatuses] = React.useState<Record<string, ServiceStatus>>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,6 +76,7 @@ const IncidentForm: React.FC<IncidentFormProps> = ({
           status,
           impact,
           affectedServices,
+          serviceStatuses,
         });
         if (result.error) {
           throw new Error(result.error);
@@ -81,6 +91,7 @@ const IncidentForm: React.FC<IncidentFormProps> = ({
           description,
           impact,
           affectedServices,
+          serviceStatuses,
         });
         if (result.error) {
           throw new Error(result.error);
@@ -108,12 +119,23 @@ const IncidentForm: React.FC<IncidentFormProps> = ({
     setImpact(value);
   };
 
+  const handleServiceStatusChange = (serviceId: string, status: ServiceStatus) => {
+    setServiceStatuses((prev) => ({ ...prev, [serviceId]: status }));
+  };
+
   const handleServiceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOptions = Array.from(
       e.target.selectedOptions,
       (option) => option.value
     );
     setAffectedServices(selectedOptions);
+    setServiceStatuses((prev) => {
+      const updated: Record<string, ServiceStatus> = {};
+      selectedOptions.forEach((id) => {
+        updated[id] = prev[id] || ServiceStatus.operational;
+      });
+      return updated;
+    });
   };
 
   return (
@@ -205,6 +227,31 @@ const IncidentForm: React.FC<IncidentFormProps> = ({
           Hold Ctrl (Windows) or Command (Mac) to select multiple services
         </p>
       </div>
+
+      {affectedServices.length > 0 && (
+        <div className="mt-2 space-y-2">
+          {affectedServices.map((serviceId) => {
+            const service = services.find((s) => s.id === serviceId);
+            return (
+              <div key={serviceId} className="flex items-center gap-2">
+                <span className="text-sm w-40 truncate">{service?.name || serviceId}</span>
+                <select
+                  value={serviceStatuses[serviceId] || ServiceStatus.operational}
+                  onChange={(e) => handleServiceStatusChange(serviceId, e.target.value as ServiceStatus)}
+                  className="p-1 border rounded-md"
+                  disabled={isLoading}
+                >
+                  {serviceStatusOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <div className="flex justify-end space-x-2">
         <Button

@@ -18,7 +18,7 @@ interface IncidentCardProps {
   incident: Omit<Incident, "status" | "impact"> & {
     status: IncidentStatus;
     impact: IncidentImpact;
-    affectedServices: { id: string }[];
+    affectedServices: { id: string; name: string }[];
     updates: {
       id: string;
       message: string;
@@ -114,6 +114,19 @@ export default function IncidentCard({ incident }: IncidentCardProps) {
                 {getImpactBadge(incident.impact)}
                 {getStatusBadge(incident.status)}
               </div>
+              {incident.affectedServices.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {incident.affectedServices.map((service) => (
+                    <Badge
+                      key={service.id}
+                      variant="outline"
+                      className="bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
+                    >
+                      {service.name}
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           <div className="text-sm text-gray-500 flex items-center gap-1">

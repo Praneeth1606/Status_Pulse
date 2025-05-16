@@ -257,6 +257,7 @@ export async function addIncident(
     description: string;
     impact: IncidentImpact;
     affectedServices: string[];
+    serviceStatuses: Record<string, ServiceStatus>;
   }
 ) {
   try {
@@ -273,6 +274,16 @@ export async function addIncident(
     if (services.length !== data.affectedServices.length) {
       throw new Error("One or more services not found or access denied");
     }
+
+    // Update service statuses
+    await Promise.all(
+      Object.entries(data.serviceStatuses).map(([serviceId, status]) =>
+        prisma.service.update({
+          where: { id: serviceId },
+          data: { status },
+        })
+      )
+    );
 
     const incident = await prisma.incident.create({
       data: {
@@ -312,8 +323,19 @@ export async function updateIncident(data: {
   status: IncidentStatus;
   impact: IncidentImpact;
   affectedServices: string[];
+  serviceStatuses: Record<string, ServiceStatus>;
 }) {
   try {
+    // Update service statuses
+    await Promise.all(
+      Object.entries(data.serviceStatuses).map(([serviceId, status]) =>
+        prisma.service.update({
+          where: { id: serviceId },
+          data: { status },
+        })
+      )
+    );
+
     const incident = await prisma.incident.update({
       where: { id: data.id },
       data: {

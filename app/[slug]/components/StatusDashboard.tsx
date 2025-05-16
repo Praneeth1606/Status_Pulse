@@ -28,7 +28,6 @@ import { cn } from "@/lib/utils";
 import ServiceCard from "@/components/ServiceCard";
 import IncidentCard from "@/components/IncidentCard";
 import MaintenanceCard from "@/components/MaintenanceCard";
-import FilterControls from "@/components/FireControls";
 import { getOverallStatusText } from "@/utils/statusUtils";
 import { Button } from "@/components/ui/button";
 
@@ -39,7 +38,7 @@ interface StatusDashboardProps {
   incidents: (Omit<Incident, "status" | "impact"> & {
     status: IncidentStatus;
     impact: IncidentImpact;
-    affectedServices: { id: string }[];
+    affectedServices: { id: string; name: string }[];
     updates: {
       id: string;
       message: string;
@@ -60,6 +59,7 @@ interface StatusDashboardProps {
     }[];
   })[];
   serviceGroups: ServiceGroup[];
+  slug: string;
 }
 
 export default function StatusDashboard({
@@ -67,6 +67,7 @@ export default function StatusDashboard({
   incidents,
   maintenances,
   serviceGroups,
+  slug,
 }: StatusDashboardProps) {
   const [lastUpdated, setLastUpdated] = React.useState(new Date());
   const [isRefreshing, setIsRefreshing] = React.useState(false);
@@ -135,12 +136,24 @@ export default function StatusDashboard({
   const overallStatus = getOverallStatus();
   const activeIncidents = incidents.filter(
     (inc) => inc.status !== IncidentStatus.resolved
-  );
+  ).map(incident => ({
+    ...incident,
+    affectedServices: incident.affectedServices.map(service => ({
+      id: service.id,
+      name: services.find(s => s.id === service.id)?.name || 'Unknown Service'
+    }))
+  }));
   const activeMaintenances = maintenances.filter(
     (mnt) =>
       mnt.status === MaintenanceStatus.scheduled ||
       mnt.status === MaintenanceStatus.in_progress
-  );
+  ).map(maintenance => ({
+    ...maintenance,
+    affectedServices: maintenance.affectedServices.map(service => ({
+      id: service.id,
+      name: services.find(s => s.id === service.id)?.name || 'Unknown Service'
+    }))
+  }));
 
   // Get services grouped by their group
   const groupedServices = serviceGroups
@@ -211,6 +224,11 @@ export default function StatusDashboard({
 
       {/* Add id to the main content */}
       <div id="main-content">
+        {/* Organization Name */}
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">
+          {slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+        </h1>
+
         {/* Status Header */}
         <Card
           className={cn("mb-8 overflow-hidden border-t-4 shadow-sm", {
@@ -371,15 +389,6 @@ export default function StatusDashboard({
                 <CheckCircle className="h-5 w-5 text-gray-500" />
                 Services Status
               </CardTitle>
-
-              <FilterControls
-                statusFilters={statusFilters}
-                setStatusFilters={setStatusFilters}
-                groupFilters={groupFilters}
-                setGroupFilters={setGroupFilters}
-                groups={serviceGroups}
-                clearFilters={clearFilters}
-              />
             </div>
           </CardHeader>
           <CardContent>

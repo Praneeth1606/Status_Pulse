@@ -12,7 +12,7 @@ import {
 } from "@prisma/client";
 import { auth } from "@clerk/nextjs/server";
 
-export default async function Page() {
+export default async function Page({params}:{params:Promise<{slug:string}>}) {
   const { orgId } = await auth();
   if (!orgId) {
     throw new Error("No organization selected");
@@ -48,6 +48,7 @@ export default async function Page() {
 
   return (
     <StatusDashboard
+    slug={(await params).slug}
       services={typedServices}
       incidents={typedIncidents}
       maintenances={typedMaintenances}
