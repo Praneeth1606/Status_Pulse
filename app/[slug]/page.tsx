@@ -10,19 +10,26 @@ import {
   IncidentStatus,
   MaintenanceStatus,
 } from "@prisma/client";
-import { auth } from "@clerk/nextjs/server";
+import { prisma } from "@/lib/db";
 
 export default async function Page({params}:{params:Promise<{slug:string}>}) {
-  const { orgId } = await auth();
-  if (!orgId) {
-    throw new Error("No organization selected");
+  const slug = (await params).slug;
+  
+  // Get organization by slug
+  const organization = await prisma.organization.findUnique({
+    where: { slug },
+  });
+
+  if (!organization) {
+    throw new Error("Organization not found");
   }
+
   const [{ services }, { incidents }, { maintenances }, serviceGroups] =
     await Promise.all([
-      getServices(orgId),
-      getIncidents(orgId),
-      getMaintenances(orgId),
-      getServiceGroups(),
+      getServices(organization.id),
+      getIncidents(organization.id),
+      getMaintenances(organization.id),
+      getServiceGroups(organization.id),
     ]);
 
   if (!services || !incidents || !maintenances) {
@@ -48,7 +55,7 @@ export default async function Page({params}:{params:Promise<{slug:string}>}) {
 
   return (
     <StatusDashboard
-    slug={(await params).slug}
+      slug={slug}
       services={typedServices}
       incidents={typedIncidents}
       maintenances={typedMaintenances}

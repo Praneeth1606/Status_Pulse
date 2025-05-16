@@ -59,7 +59,6 @@ async function getCurrentOrganization() {
 
 export async function getServices(orgId: string) {
   try {
-    await validateOrganizationAccess(orgId);
     const services = await prisma.service.findMany({
       where: {
         orgId,
@@ -77,7 +76,6 @@ export async function getServices(orgId: string) {
 
 export async function getIncidents(orgId: string) {
   try {
-    await validateOrganizationAccess(orgId);
     const incidents = await prisma.incident.findMany({
       where: {
         orgId,
@@ -115,7 +113,6 @@ export async function getIncidents(orgId: string) {
 
 export async function getMaintenances(orgId: string) {
   try {
-    await validateOrganizationAccess(orgId);
     const maintenances = await prisma.maintenance.findMany({
       where: {
         orgId,
@@ -150,16 +147,8 @@ export async function getMaintenances(orgId: string) {
   }
 }
 
-export async function getServiceGroups() {
+export async function getServiceGroups(orgId: string) {
   try {
-    const { orgId } = await auth();
-    if (!orgId) {
-      throw new Error("No organization selected");
-    }
-
-    // Validate organization access
-    await validateOrganizationAccess(orgId);
-
     const serviceGroups = await prisma.serviceGroup.findMany({
       where: {
         orgId: orgId,
