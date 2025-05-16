@@ -1,24 +1,123 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Status Pulse
+
+A modern status page and incident management system built with Next.js, Prisma, and Clerk authentication.
+
+## Features
+
+- Real-time service status monitoring
+- Incident management and updates
+- Maintenance scheduling and tracking
+- Organization-based multi-tenancy
+- Modern UI with dark mode support
+- Role-based access control
+
+## Tech Stack
+
+- **Framework**: Next.js 15.3.2
+- **Language**: TypeScript
+- **Database**: PostgreSQL with Prisma ORM
+- **Authentication**: Clerk
+- **Styling**: Tailwind CSS
+- **UI Components**: Shadcn UI
+- **Date Handling**: date-fns
+
+## Prerequisites
+
+- Node.js (Latest LTS version recommended)
+- PostgreSQL database
+- Clerk account for authentication
+- pnpm package manager
+
+## Environment Variables
+
+Create a `.env` file in the root directory with the following variables:
+
+```env
+# Database
+DATABASE_URL="postgresql://user:password@localhost:5432/status_pulse"
+
+# Clerk Authentication
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+CLERK_SECRET_KEY=your_clerk_secret_key
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/
+```
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repository:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd status-pulse
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm install
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Set up the database:
+
+```bash
+pnpm prisma generate
+pnpm prisma db push
+```
+
+4. Run the development server:
+
+```bash
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
+
+## Project Structure
+
+```
+├── app/                 # Next.js app directory
+├── components/         # Reusable UI components
+├── hooks/             # Custom React hooks
+├── lib/               # Utility functions and configurations
+├── prisma/            # Database schema and migrations
+├── public/            # Static assets
+├── types/             # TypeScript type definitions
+└── utils/             # Helper functions
+```
+
+## Database Schema
+
+The application uses the following main models:
+
+- User: Authentication and user management
+- Organization: Multi-tenant organization management
+- Service: Service status tracking
+- ServiceGroup: Grouping of related services
+- Incident: Incident management and updates
+- Maintenance: Scheduled maintenance tracking
+
+## Available Scripts
+
+- `pnpm dev`: Start development server with Turbopack
+- `pnpm build`: Generate Prisma client and build the application
+- `pnpm start`: Start production server
+- `pnpm lint`: Run ESLint
+- `pnpm postinstall`: Generate Prisma client after installation
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Learn More
 
